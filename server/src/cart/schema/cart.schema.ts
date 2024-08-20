@@ -7,15 +7,15 @@ export type CartDocument = Cart & Document;
 @Schema()
 export class Cart {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId; // Cart is linked to a user
+  userId: Types.ObjectId;  // Automatically handled in service
 
   @Prop([{
     productId: { type: Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
   }])
   items: Array<{
-    productId: Types.ObjectId;
-    quantity: number;
+    productId: Types.ObjectId;  // Automatically handled in service
+    quantity: number;  // Entered by the user
   }>;
 }
 

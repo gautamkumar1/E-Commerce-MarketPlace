@@ -167,9 +167,7 @@ export default function Header() {
         </div>
         <Link href="/cart" className="relative" prefetch={false}>
           <ShoppingCartIcon className="h-6 w-6" />
-          <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground rounded-full px-2 py-0.5 text-xs font-medium">
-            3
-          </span>
+          
         </Link>
         {isToken ? (
           isBuyer ? (

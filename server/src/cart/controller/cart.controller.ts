@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Controller, Post, Patch, Delete, Get, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { CartService } from '../service/cart.service';
-import { AddToCartDto, UpdateCartDto } from '../dto/cart.dto';
+import {UpdateCartDto } from '../dto/cart.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('api/cart')
@@ -18,9 +18,10 @@ export class CartController {
 
   // POST /cart - Add product to cart
   @Post()
-  async addToCart(@Req() req: any, @Body() addToCartDto: AddToCartDto) {
-    const userId = req.user.userId; // Get authenticated user's ID
-    return this.cartService.addToCart(userId, addToCartDto);
+  async addToCart(@Req() req, @Body() body) {
+    const userId = req.user.userId;  // Get userId from the request (from JWT)
+    const { productId, quantity } = body;
+    return this.cartService.addToCart(userId, productId, quantity);
   }
 
   // PATCH /cart - Update product quantity in cart
@@ -35,5 +36,12 @@ export class CartController {
   async removeFromCart(@Req() req: any, @Param('productId') productId: string) {
     const userId = req.user.userId;
     return this.cartService.removeFromCart(userId, productId);
+  }
+
+  // DELETE /cart - Clear all items from cart
+  @Delete()
+  async clearCart(@Req() req: any) {
+    const userId = req.user.userId;
+    return this.cartService.clearCart(userId);
   }
 }
