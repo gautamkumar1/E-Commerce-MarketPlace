@@ -165,7 +165,7 @@ export default function Header() {
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
           />
         </div>
-        <Link href="/cart" className="relative" prefetch={false}>
+        <Link href="/cart" className="relative">
           <ShoppingCartIcon className="h-6 w-6" />
           
         </Link>
