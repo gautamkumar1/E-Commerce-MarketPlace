@@ -42,6 +42,9 @@ export class Order {
 
   @Prop()
   stripePaymentIntentId: string;
+
+  @Prop({ required: true, enum: ['pending', 'rejected', 'delivered'], default: 'pending' })
+  status: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

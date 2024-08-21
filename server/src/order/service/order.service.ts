@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
@@ -36,6 +36,15 @@ export class OrderService {
       session.endSession();
     }
   }
+
+  // Order Service
+async updateOrderStatus(orderId: string, status: 'pending' | 'rejected' | 'delivered'): Promise<Order> {
+  const order = await this.orderModel.findByIdAndUpdate(orderId, { status }, { new: true });
+  if (!order) {
+    throw new NotFoundException('Order not found');
+  }
+  return order;
+}
 
   async createStripePaymentIntent(amount: number, currency: string): Promise<Stripe.PaymentIntent> {
     return await this.stripe.paymentIntents.create({

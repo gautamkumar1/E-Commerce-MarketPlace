@@ -9,10 +9,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import axios from 'axios'
 import { loadStripe } from '@stripe/stripe-js'
 import { useStripe, useElements, CardElement,Elements} from '@stripe/react-stripe-js';
+import { toast } from 'react-toastify'
 
+interface UserData {
+  username: string;
+  email: string;
+  buyer:string
+  seller:string
+  userId:string
+  address:string
+}
 
 const stripePromise = loadStripe('pk_test_51PTZieP9lvJdVilSFGGLEcIIUwEhr3zb6m9x0eFtdPCnI2mQwImEjuzQfctij8tIStYqvV3ybBFLdy8qJadMHn7600z3Zj30Yb'); // Replace with your Stripe publishable key
 export default function Checkout() {
+  const userData: UserData | null = localStorage.getItem('userData')
+    ? JSON.parse(localStorage.getItem('userData') as string)
+    : null;
   const [currentStep, setCurrentStep] = useState(1);
   const [shippingInfo, setShippingInfo] = useState({});
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -108,14 +120,30 @@ export default function Checkout() {
         return;
       }
 
+      // Step 3: Prepare and send the order creation payload
+    const orderPayload = {
+      userId: userData?.userId, // Replace with actual user ID
+      name: shippingInfo.name,
+      email: shippingInfo.email,
+      address: shippingInfo.address,
+      city: shippingInfo.city,
+      state: shippingInfo.state,
+      zip: shippingInfo.zip,
+      country: shippingInfo.country,
+      items: orderItems.map(item => ({
+        productId: item._id, 
+        quantity: item.quantity
+      })),
+      total: amount, // total amount in the smallest currency unit
+      paymentMethod: paymentMethod,
+      stripePaymentIntentId: client_secret,
+       status: 'pending' // Initial status
+    };
+    
+    console.log('Order Payload:', orderPayload);
       const orderResponse = await axios.post(
         '/api/order',
-        {
-          items: orderItems,
-          shippingInfo,
-          paymentMethod,
-          paymentIntentId: client_secret,
-        },
+        orderPayload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,9 +151,10 @@ export default function Checkout() {
         }
       );
 
+      toast.success("Order Placed Successfully")
       console.log('Order created:', orderResponse.data);
     } catch (error) {
-      
+      toast.error("Order Placed Failed")
       console.error('Error placing order:', error);
     }
   };
@@ -288,17 +317,7 @@ function OrderReview({ onNext, onPrev, orderItems, calculateTotalAmount }) {
   )
 }
 
-// function FinalPayment({ onPrev, handlePlaceOrder }) {
-//   return (
-//     <div className="space-y-6">
-//       <h2>Final Payment</h2>
-//       <div className="flex justify-end gap-4">
-//         <Button variant="outline" onClick={onPrev}>Previous</Button>
-//         <Button onClick={handlePlaceOrder}>Place Order</Button>
-//       </div>
-//     </div>
-//   )
-// }
+
 function FinalPayment({ onPrev, handlePlaceOrder }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -344,7 +363,14 @@ function FinalPayment({ onPrev, handlePlaceOrder }) {
       <div className="space-y-4">
         <Label htmlFor="card-element">Credit or Debit Card</Label>
         <div className="border border-muted rounded-md p-2">
-          <CardElement id="card-element" onChange={handleCardChange} options={{ hidePostalCode: true }} />
+          <CardElement id="card-element" onChange={handleCardChange} options={{ hidePostalCode: true ,style:{
+            base:{
+              color: 'white',
+              '::placeholder': {
+                color: 'gray'  // Placeholder color
+              }
+            }
+          }}} />
         </div>
         {error && <div className="text-red-500">{error}</div>}
       </div>

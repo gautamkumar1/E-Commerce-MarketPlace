@@ -1,9 +1,12 @@
 /* eslint-disable prettier/prettier */
 
-import { Controller, Post, Body, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, UseGuards, Param } from '@nestjs/common';
 import { OrderService } from '../service/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { UserRole } from 'src/auth/role.enum';
 
 
 @Controller('api/order')
@@ -29,4 +32,11 @@ export class OrderController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @UseGuards(JwtAuthGuard,RolesGuard)
+  @Post(':id/status')
+  @Roles(UserRole.Seller)
+async updateOrderStatus(@Param('id') orderId: string, @Body('status') status: 'pending' | 'rejected' | 'delivered') {
+  return this.orderService.updateOrderStatus(orderId, status);
+}
 }
