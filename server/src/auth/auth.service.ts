@@ -5,16 +5,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { Buyer, BuyerDocument } from 'src/auth/schema/buyer.schema';
+// import { Buyer, BuyerDocument } from '../auth/schema/buyer.schema';
+
 
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from './auth-email.service';
-import { UserRole } from './role.enum';
+
 
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
 import { Seller, SellerDocument } from './schema/seller.schema';
+import { UserRole } from './role.enum';
 @Injectable()
 export class AuthService {
   constructor(
@@ -27,6 +30,7 @@ export class AuthService {
   ) {}
 
   //********** REGISTER BUYER *****************
+  
   async registerBuyer(createBuyerDto: any): Promise<Buyer> {
     // Check if all required fields are provided
     if (
@@ -85,14 +89,15 @@ export class AuthService {
   
     // Hash the password
     const hashedPassword = await bcrypt.hash(createBuyerDto.password, 10);
+    // console.log("HashedPw: ", hashedPassword);
+    
+    // Create a new buyer with the hashed password using Mongoose's create method
+    const createdBuyer = await this.buyerModel.create({ ...createBuyerDto, password: hashedPassword });
   
-    // Create a new buyer with the hashed password
-    const createdBuyer = new this.buyerModel({ ...createBuyerDto, password: hashedPassword });
-  
-    // Save the new buyer to the database and return it
-    return createdBuyer.save();
+    // Return the newly created buyer
+    return createdBuyer;
   }
-
+  
   //********** REGISTER SELLER *****************
   async registerSeller(createSellerDto: any): Promise<Seller> {
     // Check if all required fields are provided
@@ -161,6 +166,7 @@ export class AuthService {
   
     // Hash the password
     const hashedPassword = await bcrypt.hash(createSellerDto.password, 10);
+    
   // Set the roles (default to ['seller'] if no roles provided)
   const roles = createSellerDto.roles && createSellerDto.roles.length > 0
   ? createSellerDto.roles
